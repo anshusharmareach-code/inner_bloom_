@@ -1,0 +1,205 @@
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #fcfbff;
+  padding: 10px 28px;
+  border-bottom: 1px solid rgba(200, 200, 255, 0.2);
+  position: relative;
+  z-index: 1000;
+}
+
+.nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.company-name {
+  font-family: 'Poppins', 'Segoe UI', sans-serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+  background: linear-gradient(90deg, #7c3aed, #3b82f6);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  user-select: none;
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  position: relative;
+}
+
+.nav-user-section {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.nav-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #6a5acd;
+  transition: transform 0.2s;
+}
+
+.nav-avatar:hover {
+  transform: scale(1.05);
+}
+
+.nav-email {
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.8rem;
+  color: #4b5563;
+  margin-top: 4px;
+  word-break: break-word;
+  max-width: 120px;
+  text-align: center;
+}
+
+.dropdown-container {
+  position: absolute;
+  top: 60px;
+  right: 0;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  min-width: 180px;
+}
+
+.nav-btn {
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.85rem;
+  padding: 6px 14px;
+  transition: all 0.2s ease-in-out;
+}
+
+.login-btn {
+  background: linear-gradient(90deg, #7c3aed, #3b82f6);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.25);
+}
+
+.login-btn:hover {
+  opacity: 0.9;
+}
+
+.export-btn {
+  background: transparent;
+  border: 1px solid #7c3aed;
+  color: #7c3aed;
+  padding: 0 10px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 30px;
+  margin-top: 3px;
+  position: relative;
+  top: 10px;
+}
+
+.export-btn:hover {
+  background: rgba(124, 58, 237, 0.1);
+}
+
+.export-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.create-post-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: linear-gradient(45deg, #ff9a9e, #fad0c4, #fbc2eb, #a18cd1);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  transition: transform 0.2s, box-shadow 0.2s;
+  background-size: 200% 200%;
+  animation: gradientShift 6s ease infinite;
+}
+
+.create-post-icon:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 10px rgba(255, 182, 193, 0.5);
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+
+.create-post-icon:hover {
+  transform: translateY(-1px);
+}
+
+@media (max-width: 768px) {
+  .navbar {
+    padding: 8px 12px;
+  }
+
+  .nav-actions {
+    gap: 10px;
+  }
+
+  .nav-user-section {
+    flex-direction: row;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .export-btn {
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.95rem;
+  }
+
+  .create-post-icon {
+    width: 34px;
+    height: 34px;
+    font-size: 18px;
+  }
+
+  .nav-avatar {
+    width: 34px;
+    height: 34px;
+  }
+
+  .nav-email {
+    display: none;
+  }
+
+  .dropdown-container {
+    top: 56px;
+    right: 10px;
+    min-width: 160px;
+  }
+}
