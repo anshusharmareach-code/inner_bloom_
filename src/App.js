@@ -211,7 +211,7 @@ const AppContent = ({
                 requiredRole="user"
                 redirectTo="/login"
               >
-                <Feed />
+                <Feed currentUser={currentUser} userRole={userRole} />
               </ProtectedRoute>
             }
           />

@@ -3,17 +3,14 @@ import { onValue, ref } from 'firebase/database';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../CSS/Nav.css';
+
 import CreatePostModal from '../Modals/CreatePostModal';
 import { db as sharedDb } from './firebase';
 import ProfileMenu from './Profilemenu';
 
+import ExportIcon from '../Assets/export-button.jpeg';
+
 import avatar1 from '../Assets/1.jpeg';
-import avatar10 from '../Assets/10.jpeg';
-import avatar11 from '../Assets/11.jpeg';
-import avatar12 from '../Assets/12.jpeg';
-import avatar13 from '../Assets/13.jpeg';
-import avatar14 from '../Assets/14.jpeg';
-import avatar15 from '../Assets/15.jpeg';
 import avatar2 from '../Assets/2.jpeg';
 import avatar3 from '../Assets/3.jpeg';
 import avatar4 from '../Assets/4.jpeg';
@@ -22,6 +19,12 @@ import avatar6 from '../Assets/6.jpeg';
 import avatar7 from '../Assets/7.jpeg';
 import avatar8 from '../Assets/8.jpeg';
 import avatar9 from '../Assets/9.jpeg';
+import avatar10 from '../Assets/10.jpeg';
+import avatar11 from '../Assets/11.jpeg';
+import avatar12 from '../Assets/12.jpeg';
+import avatar13 from '../Assets/13.jpeg';
+import avatar14 from '../Assets/14.jpeg';
+import avatar15 from '../Assets/15.jpeg';
 
 const avatars = [
   avatar1, avatar2, avatar3, avatar4, avatar5,
@@ -35,217 +38,174 @@ const NavBar = ({ isLoggedIn, setIsLoggedIn, userRole }) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [testHistory, setTestHistory] = useState([]);
+
   const menuRef = useRef(null);
 
+
+  
 
   useEffect(() => {
     const auth = getAuth();
     const db = sharedDb;
-    
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
+
       if (currentUser) {
         setIsLoggedIn(true);
-        
-        // Fetch test history for export functionality
+
         const resultsRef = ref(db, `users/${currentUser.uid}/assessmentResults`);
         onValue(resultsRef, (snapshot) => {
           const data = snapshot.val();
-          if (data) {
-            const resultsData = Object.entries(data)
-              .map(([id, result]) => ({
-                id,
-                ...result,
-              }))
-              .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-            setTestHistory(resultsData);
-          } else {
-            setTestHistory([]);
-          }
+          if (!data) return setTestHistory([]);
+
+          const formatted = Object.entries(data)
+            .map(([id, val]) => ({ id, ...val }))
+            .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+          setTestHistory(formatted);
         });
       } else {
         setTestHistory([]);
       }
     });
-    
+
     return () => unsubscribe();
   }, [setIsLoggedIn]);
 
 
+  
+
   const userAvatar = useMemo(() => {
-    if (!user?.email) return avatars[Math.floor(Math.random() * avatars.length)];
-    const savedAvatar = localStorage.getItem(`avatar_${user.email}`);
-    if (savedAvatar) return savedAvatar;
+    if (!user?.email) {
+      return avatars[Math.floor(Math.random() * avatars.length)];
+    }
+
+    const saved = localStorage.getItem(`avatar_${user.email}`);
+    if (saved) return saved;
+
     const random = avatars[Math.floor(Math.random() * avatars.length)];
     localStorage.setItem(`avatar_${user.email}`, random);
     return random;
   }, [user?.email]);
 
 
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (isProfileOpen && menuRef.current && !menuRef.current.contains(event.target)) {
-        setIsProfileOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isProfileOpen]);
+  
 
-  const handleBrandClick = () => {
-    if (!isLoggedIn) navigate('/');
-    else if (userRole === 'admin') navigate('/admin');
-    else if (userRole === 'counsellor') navigate('/counsellor');
-    else navigate('/');
-  };
-
-  const handleAuthClick = async () => {
-    if (isLoggedIn) {
-      try {
-        const auth = getAuth();
-        await signOut(auth);
-        setIsLoggedIn(false);
-        navigate('/');
-      } catch (err) {
-        console.error('Sign out error:', err);
-      }
-    } else {
-      navigate('/Login');
+  const handleLogout = async () => {
+    try {
+      await signOut(getAuth());
+      setIsLoggedIn(false);
+      navigate('/');
+    } catch (e) {
+      console.log(e);
     }
   };
+
+
+  
 
   const exportToCSV = () => {
     if (!testHistory.length) return;
 
-    const headers = [
-      'Test Type',
-      'Date',
-      'Score',
-      'Interpretation',
-      'DASS Subscale',
-      'Subscale Score',
-      'Subscale Interpretation',
-    ];
+    let csv = "Test Type,Date,Score,Interpretation,DASS Subscale,Subscale Score,Subscale Interpretation\n";
 
-    const formatDate = (timestamp) => {
-      if (!timestamp) return 'Unknown date';
-      const date = new Date(timestamp);
-      return date.toLocaleString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-      });
-    };
+    const dateText = (t) => new Date(t).toLocaleString();
 
-    const rows = testHistory.flatMap((result) => {
-      if (result.testType === 'DASS-21' && result.results) {
-        return Object.entries(result.results).map(([subscale, details]) => [
-          result.testType,
-          formatDate(result.timestamp || result.createdAt),
-          '',
-          '',
-          subscale,
-          details.score,
-          details.interpretation,
-        ]);
+    testHistory.forEach((r) => {
+      if (r.testType === "DASS-21") {
+        Object.entries(r.results).forEach(([key, val]) => {
+          csv += `DASS-21,${dateText(r.timestamp)},,,${key},${val.score},${val.interpretation}\n`;
+        });
       } else {
-        return [
-          [
-            result.testType,
-            formatDate(result.timestamp || result.createdAt),
-            result.score || result.totalScore || '',
-            result.resultInterpretation || result.interpretation || '',
-            '',
-            '',
-            '',
-          ],
-        ];
+        csv += `${r.testType},${dateText(r.timestamp)},${r.score || ""},${r.interpretation || ""},,,\n`;
       }
     });
 
-    let csvContent = '';
-    csvContent += headers.join(',') + '\n';
-    rows.forEach((row) => {
-      const escapedRow = row.map((field) =>
-        typeof field === 'string' && (field.includes(',') || field.includes('"'))
-          ? `"${field.replace(/"/g, '""')}"`
-          : field
-      );
-      csvContent += escapedRow.join(',') + '\n';
-    });
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', 'test_history.csv');
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const blob = new Blob([csv]);
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "test_history.csv";
+    a.click();
   };
+
+
+  
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setIsProfileOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+
+  
 
   return (
     <nav className="navbar">
-      <div className="nav-brand" onClick={handleBrandClick}>
+
+      {}
+      <div className="brand-wrapper" onClick={() => navigate('/')}>
         <span className="company-name">MindCare</span>
       </div>
 
       <div className="nav-actions">
         {isLoggedIn ? (
-          <div className="nav-user-section">
-            {userRole === 'user' && (
-              <button
-                className="create-post-icon"
-                onClick={() => setIsCreateModalOpen(true)}
-                title="Create Post"
-              >
+          <div className="icon-group-wrapper">
+
+            {}
+            {userRole === "user" && (
+              <button className="icon-btn" onClick={() => setIsCreateModalOpen(true)}>
                 ➕
               </button>
             )}
-            <button 
-              className="export-btn" 
+
+            {}
+            <button
+              className="icon-btn"
               onClick={exportToCSV}
-              disabled={testHistory.length === 0}
-              title={testHistory.length === 0 ? "No test history to export" : "Export test history"}
+              disabled={!testHistory.length}
             >
-              ⬇
+              <img src={ExportIcon} alt="Export" className="export-image" />
             </button>
+
+            {}
             <img
               src={userAvatar}
+              className="icon-avatar"
               alt="avatar"
-              className="nav-avatar"
-              onClick={() => setIsProfileOpen(prev => !prev)}
+              onClick={() => setIsProfileOpen((prev) => !prev)}
             />
 
+            {}
             {isProfileOpen && (
               <div ref={menuRef} className="dropdown-container">
                 <ProfileMenu
+                  userAvatar={userAvatar}
                   userRole={userRole}
                   userEmail={user?.email}
-                  userName={user?.displayName || 'User'}
-                  userAvatar={userAvatar}
-                  onLogout={() => {
-                    handleAuthClick();
-                    setIsProfileOpen(false);
-                  }}
-                  onHistory={() => {
-                    navigate('/history');
-                    setIsProfileOpen(false);
-                  }}
-                  onSettings={() => {
-                    setIsProfileOpen(false);
-                  }}
+                  onLogout={handleLogout}
+                  onHistory={() => navigate('/history')}
                 />
               </div>
             )}
+
+            {}
             {isCreateModalOpen && (
               <CreatePostModal onClose={() => setIsCreateModalOpen(false)} />
             )}
+
           </div>
         ) : (
-          <button className="nav-btn login-btn" onClick={handleAuthClick}>Login</button>
+          <button className="nav-btn login-btn" onClick={() => navigate('/Login')}>
+            Login
+          </button>
         )}
       </div>
     </nav>

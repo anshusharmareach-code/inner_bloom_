@@ -29,8 +29,8 @@ const CreatePostModal = ({ onClose }) => {
     const user = auth.currentUser;
 
     try {
-      // For now, we'll store the media as base64
-      // In production, you should use Firebase Storage
+
+      
       const postData = {
         userId: user.uid,
         userEmail: user.email,
@@ -54,7 +54,7 @@ const CreatePostModal = ({ onClose }) => {
   };
 
   const handleOverlayClick = (e) => {
-    // Only close if clicking directly on the overlay, not its children
+
     if (e.target.className === 'modal-overlay') {
       onClose();
     }

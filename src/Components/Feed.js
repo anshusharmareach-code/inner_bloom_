@@ -5,7 +5,8 @@ import CreatePostModal from '../Modals/CreatePostModal';
 import { db } from './firebase';
 import Post from './Post';
 
-const Feed = () => {
+
+const Feed = ({ currentUser, userRole }) => {
   const [posts, setPosts] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -25,7 +26,6 @@ const Feed = () => {
       }
       setLoading(false);
     });
-
     return () => unsubscribe();
   }, []);
 
@@ -36,6 +36,11 @@ const Feed = () => {
   const handleCloseModal = () => {
     setIsModalOpen(false);
   };
+
+  // Only users and counsellors can see the feed
+  if (userRole === 'admin') {
+    return <div className="feed-loading">Admins do not have access to the community feed.</div>;
+  }
 
   if (loading) {
     return <div className="feed-loading">Loading feed...</div>;

@@ -2,7 +2,8 @@ import {
   createUserWithEmailAndPassword,
   getAuth,
   sendEmailVerification,
-  signInWithEmailAndPassword
+  signInWithEmailAndPassword,
+  signOut
 } from 'firebase/auth';
 import {
   child,
@@ -44,12 +45,41 @@ const Login = ({
         const user = userCredential.user;
 
         if (!user.emailVerified) {
-          setError('Please verify your email before logging in.');
+          setError('Please verify your email before logging in. Check your inbox or spam folder for the verification link.');
+          await signOut(auth);
           return;
         }
 
+        // Fetch user data from database
+        let snapshot = await get(child(ref(db), `users/${user.uid}`));
+        
+        // If user doesn't have a database record yet, create one on first verified login
+        if (!snapshot.exists()) {
+          // Try to get signup data from localStorage
+          const signupData = localStorage.getItem(`signup_${user.uid}`);
+          let userRole = 'user'; // default role
 
-        const snapshot = await get(child(ref(db), `users/${user.uid}`));
+          if (signupData) {
+            try {
+              const parsed = JSON.parse(signupData);
+              userRole = parsed.role || 'user';
+              // Clean up localStorage after use
+              localStorage.removeItem(`signup_${user.uid}`);
+            } catch (e) {
+              console.error('Error parsing signup data:', e);
+            }
+          }
+
+          // Create user record
+          await set(ref(db, 'users/' + user.uid), {
+            email: user.email,
+            role: userRole,
+            assignedCounsellor: null,
+            registrationDate: new Date().toISOString()
+          });
+          snapshot = await get(child(ref(db), `users/${user.uid}`));
+        }
+
         const userData = snapshot.exists() ? snapshot.val() : { role: 'user' };
 
         const currentUserData = {
@@ -59,12 +89,10 @@ const Login = ({
           ...userData,
         };
 
-
         setCurrentUser(currentUserData);
         setUserRole(userData.role || 'user');
         setIsLoggedIn(true);
         setModalOpen(false);
-
 
         let targetRoute = '/';
         if (userData.role === 'admin') targetRoute = '/admin';
@@ -75,20 +103,24 @@ const Login = ({
         setError(err.message);
       }
     } else {
-
       try {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
 
-        await sendEmailVerification(user);
-
-        await set(ref(db, 'users/' + user.uid), {
+        // Store signup data in localStorage temporarily (will be used after verification)
+        localStorage.setItem(`signup_${user.uid}`, JSON.stringify({
           email: user.email,
           role: role,
-          assignedCounsellor: role === 'user' ? null : null
-        });
+          signupTime: Date.now()
+        }));
 
-        setMessage('Signup successful! A verification link has been sent to your email.');
+        // Send verification email first
+        await sendEmailVerification(user);
+        
+        // Sign out immediately after signup
+        await signOut(auth);
+
+        setMessage('Signup successful! A verification link has been sent to your email. Please verify your email to complete registration. After verification, you can log in.');
         setEmail('');
         setPassword('');
         setIsLogin(true);

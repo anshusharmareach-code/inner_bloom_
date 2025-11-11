@@ -1,12 +1,15 @@
-import React, { useEffect, useState } from 'react';
-import { getDatabase, ref, onValue, query, orderByChild, limitToLast } from 'firebase/database';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { getDatabase, limitToLast, onValue, orderByChild, query, ref, update } from 'firebase/database';
+import { useEffect, useState } from 'react';
 import '../CSS/Admin.css';
 
 const MS_IN_DAY = 24 * 60 * 60 * 1000;
 
 const AdminDashboard = () => {
   const [users, setUsers] = useState([]);
+  const [selectedUser, setSelectedUser] = useState('');
+  const [selectedCounsellor, setSelectedCounsellor] = useState('');
+  const [assignStatus, setAssignStatus] = useState('');
   const [recentUsers, setRecentUsers] = useState([]);
   const [currentUserRole, setCurrentUserRole] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -96,11 +99,59 @@ const AdminDashboard = () => {
     userGrowthPercent = 100;
   }
 
+  // Assignment logic
+  const userOptions = users.filter(u => u.role === 'user');
+  const counsellorOptions = users.filter(u => u.role === 'counsellor');
+
+  const handleAssign = async () => {
+    if (!selectedUser || !selectedCounsellor) {
+      setAssignStatus('Please select both a user and a counsellor.');
+      return;
+    }
+    setAssignStatus('Assigning...');
+    try {
+      const db = getDatabase();
+      await update(ref(db, `users/${selectedUser}`), {
+        assignedCounsellor: selectedCounsellor
+      });
+      setAssignStatus('User assigned to counsellor successfully!');
+    } catch (error) {
+      setAssignStatus('Error assigning user.');
+    }
+  };
+
   return (
     <div className="admin-dashboard-container" style={{ fontFamily: 'Arial, sans-serif', padding: 20, maxWidth: 900, margin: 'auto' }}>
       <h1>Admin Dashboard</h1>
 
-      {}
+      {/* Assignment Section */}
+      <section style={{ marginBottom: 30, background: '#f8f9fa', borderRadius: 8, padding: 20 }}>
+        <h3>Assign User to Counsellor</h3>
+        <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
+          <div>
+            <label>User:&nbsp;</label>
+            <select value={selectedUser} onChange={e => setSelectedUser(e.target.value)}>
+              <option value="">Select User</option>
+              {userOptions.map(u => (
+                <option key={u.uid} value={u.uid}>{u.email}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label>Counsellor:&nbsp;</label>
+            <select value={selectedCounsellor} onChange={e => setSelectedCounsellor(e.target.value)}>
+              <option value="">Select Counsellor</option>
+              {counsellorOptions.map(c => (
+                <option key={c.uid} value={c.uid}>{c.email}</option>
+              ))}
+            </select>
+          </div>
+          <button onClick={handleAssign} style={{ padding: '6px 18px', borderRadius: 6, background: '#7c3aed', color: 'white', border: 'none', fontWeight: 600, cursor: 'pointer' }}>Assign</button>
+        </div>
+        {assignStatus && <div style={{ marginTop: 10, color: assignStatus.includes('success') ? 'green' : 'red' }}>{assignStatus}</div>}
+      </section>
+
+      {/* ...existing code... */}
       <div style={{ display: 'flex', gap: 15, marginBottom: 20 }}>
         <div style={cardStyle}>
           <div>Total Users</div>
@@ -116,7 +167,6 @@ const AdminDashboard = () => {
         </div>
       </div>
 
-      {}
       <section style={{ marginBottom: 30 }}>
         <h3>User Growth</h3>
         <div style={{ fontWeight: 'bold', fontSize: 18, marginBottom: 5 }}>
@@ -124,7 +174,6 @@ const AdminDashboard = () => {
         </div>
       </section>
 
-      {}
       <section>
         <h3>Recent Users</h3>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>

@@ -18,7 +18,7 @@ const Post = ({ post }) => {
     if (!user) return;
 
     const postLikeRef = ref(db, `posts/${post.id}/likes/${user.uid}`);
-    
+
     try {
       if (isLiked) {
         await remove(postLikeRef);
