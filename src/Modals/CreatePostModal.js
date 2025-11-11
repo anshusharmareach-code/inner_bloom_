@@ -32,7 +32,7 @@ const CreatePostModal = ({ onClose }) => {
 
       
       const postData = {
-        userId: user.uid,
+        authorId: user.uid,
         userEmail: user.email,
         content,
         media: mediaPreview,

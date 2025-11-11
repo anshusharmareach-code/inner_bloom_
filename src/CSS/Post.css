@@ -3,13 +3,73 @@
   border-radius: 12px;
   padding: 16px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  overflow: visible;
 }
 
 .post-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   margin-bottom: 12px;
+  position: relative;
+}
+
+.post-menu-container {
+  position: relative;
+  z-index: 100;
+}
+
+.menu-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #666;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.menu-btn:hover {
+  background: #f3f4f6;
+  color: #1a1a1a;
+}
+
+.post-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  min-width: 140px;
+  overflow: visible;
+  margin-top: 4px;
+}
+
+.menu-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 10px 14px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #1a1a1a;
+  transition: all 0.2s;
+}
+
+.menu-item:hover {
+  background: #f3f4f6;
+}
+
+.delete-item:hover {
+  background: #fee2e2;
+  color: #dc2626;
 }
 
 .post-user {
@@ -26,6 +86,68 @@
   margin-bottom: 16px;
   line-height: 1.5;
   color: #1a1a1a;
+}
+
+.edit-section {
+  margin-bottom: 16px;
+  padding: 12px;
+  background: #f9fafb;
+  border-radius: 8px;
+}
+
+.edit-textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 100px;
+  margin-bottom: 10px;
+}
+
+.edit-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.edit-save-btn,
+.edit-cancel-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.edit-save-btn {
+  background: #7c3aed;
+  color: white;
+}
+
+.edit-save-btn:hover {
+  background: #6d28d9;
+}
+
+.edit-cancel-btn {
+  background: #e5e7eb;
+  color: #4b5563;
+}
+
+.edit-cancel-btn:hover {
+  background: #d1d5db;
+}
+
+.post-stats {
+  display: flex;
+  gap: 16px;
+  padding: 8px 0;
+  font-size: 0.85rem;
+  color: #666;
+  margin-bottom: 12px;
+  border-bottom: 1px solid #eee;
 }
 
 .post-media {

@@ -58,7 +58,7 @@ const Feed = ({ currentUser, userRole }) => {
 
       <div className="posts-grid">
         {posts.map(post => (
-          <Post key={post.id} post={post} />
+          <Post key={post.id} post={post} currentUser={currentUser} userRole={userRole} />
         ))}
       </div>
 
