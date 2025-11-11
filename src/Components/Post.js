@@ -10,7 +10,7 @@ const Post = ({ post, currentUser, userRole }) => {
   const [likesCount, setLikesCount] = useState(
     post.likes ? Object.keys(post.likes).length : 0
   );
-  const [sharesCount, setSharesCount] = useState(post.shares || 0);
+  
   const [comment, setComment] = useState('');
   const [showComments, setShowComments] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
@@ -39,12 +39,6 @@ const Post = ({ post, currentUser, userRole }) => {
       }
     });
 
-    // Listen to shares
-    const sharesRef = ref(db, `posts/${post.id}/shares`);
-    const unsubscribeShares = onValue(sharesRef, (snapshot) => {
-      setSharesCount(snapshot.val() || 0);
-    });
-
     // Listen to comments
     const commentsRef = ref(db, `posts/${post.id}/comments`);
     const unsubscribeComments = onValue(commentsRef, (snapshot) => {
@@ -53,7 +47,6 @@ const Post = ({ post, currentUser, userRole }) => {
 
     return () => {
       unsubscribeLikes();
-      unsubscribeShares();
       unsubscribeComments();
     };
   }, [post.id]);
@@ -81,17 +74,7 @@ const Post = ({ post, currentUser, userRole }) => {
     }
   };
 
-  const handleShare = async () => {
-    try {
-      const newShareCount = (post.shares || 0) + 1;
-      await update(ref(db, `posts/${post.id}`), {
-        shares: newShareCount
-      });
-      setSharesCount(newShareCount);
-    } catch (error) {
-      console.error('Error updating shares:', error);
-    }
-  };
+  
 
   const handleEdit = async () => {
     if (!editedContent.trim()) return;
@@ -200,7 +183,6 @@ const Post = ({ post, currentUser, userRole }) => {
 
       <div className="post-stats">
         <span>{likesCount} {likesCount === 1 ? 'like' : 'likes'}</span>
-        <span>{sharesCount} {sharesCount === 1 ? 'share' : 'shares'}</span>
       </div>
 
       <div className="post-actions">
@@ -216,12 +198,7 @@ const Post = ({ post, currentUser, userRole }) => {
         >
           💬 {post.comments ? Object.keys(post.comments).length : 0}
         </button>
-        <button 
-          className="action-btn share-btn"
-          onClick={handleShare}
-        >
-          🔄 {sharesCount}
-        </button>
+        {/* share button removed as requested */}
       </div>
 
       {showComments && (
