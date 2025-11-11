@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
+import { onAuthStateChanged, signInAnonymously } from "firebase/auth";
+import { push, ref, set } from "firebase/database";
+import { useEffect, useRef, useState } from "react";
 import "../CSS/Gad.css";
 import { auth as sharedAuth, db as sharedDb } from "../Components/firebase";
-import { onAuthStateChanged, signInAnonymously } from "firebase/auth";
-import { ref, push, set } from "firebase/database";
 
 const GAD7 = () => {
   const GAD7_QUESTIONS = [
@@ -28,6 +28,9 @@ const GAD7 = () => {
   const [userId, setUserId] = useState(null);
   const [db, setDb] = useState(null);
   const [isAuthReady, setIsAuthReady] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [hasSubmitted, setHasSubmitted] = useState(false);
+  const submittingRef = useRef(false);
 
   useEffect(() => {
     setDb(sharedDb);
@@ -73,6 +76,12 @@ const GAD7 = () => {
     setInterpretation(resultInterpretation);
 
     if (db && userId) {
+      if (hasSubmitted || submittingRef.current) {
+        alert('You have already submitted this assessment or submission is in progress.');
+        return;
+      }
+      submittingRef.current = true;
+      setIsSubmitting(true);
       try {
         const resultsRef = ref(db, `users/${userId}/assessmentResults`);
         const newResultRef = push(resultsRef);
@@ -83,9 +92,13 @@ const GAD7 = () => {
           timestamp: Date.now(),
           answers
         });
+        setHasSubmitted(true);
         console.log("GAD-7 result saved to Realtime Database ✅");
       } catch (error) {
         console.error("Error saving result:", error);
+      } finally {
+        setIsSubmitting(false);
+        submittingRef.current = false;
       }
     }
   };
@@ -131,9 +144,9 @@ const GAD7 = () => {
           <button
             type="submit"
             className="submit-btn"
-            disabled={answers.includes(null)}
+            disabled={answers.includes(null) || isSubmitting || hasSubmitted}
           >
-            Submit
+            {isSubmitting ? 'Saving...' : hasSubmitted ? 'Already saved' : 'Submit'}
           </button>
         </form>
 

@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { auth as sharedAuth, db as sharedDb } from '../Components/firebase';
 import { onAuthStateChanged, signInAnonymously } from 'firebase/auth';
-import { ref, push, set } from 'firebase/database';
+import { push, ref, set } from 'firebase/database';
+import { useEffect, useRef, useState } from 'react';
+import { auth as sharedAuth, db as sharedDb } from '../Components/firebase';
 import '../CSS/Das.css';
 
 const DASS21_QUESTIONS = {
@@ -75,6 +75,9 @@ const DASS21Form = () => {
   const [userId, setUserId] = useState(null);
   const [db, setDb] = useState(null);
   const [isAuthReady, setIsAuthReady] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [hasSubmitted, setHasSubmitted] = useState(false);
+  const submittingRef = useRef(false);
 
   useEffect(() => {
     setDb(sharedDb);
@@ -121,6 +124,12 @@ const DASS21Form = () => {
 
     
     if (db && userId) {
+      if (hasSubmitted || submittingRef.current) {
+        alert('You have already submitted this assessment or submission is in progress.');
+        return;
+      }
+      submittingRef.current = true;
+      setIsSubmitting(true);
       try {
         const resultsRef = ref(db, `users/${userId}/assessmentResults`);
         const newResultRef = push(resultsRef);
@@ -130,9 +139,13 @@ const DASS21Form = () => {
           timestamp: Date.now(),
           answers: responses
         });
+        setHasSubmitted(true);
         console.log("DASS-21 result saved to Realtime Database ✅");
       } catch (error) {
         console.error("Error saving result:", error);
+      } finally {
+        setIsSubmitting(false);
+        submittingRef.current = false;
       }
     }
   };
@@ -165,7 +178,7 @@ const DASS21Form = () => {
             ))}
           </div>
         ))}
-        <button type="submit">Submit</button>
+  <button type="submit" disabled={isSubmitting || hasSubmitted}> {isSubmitting ? 'Saving...' : hasSubmitted ? 'Already saved' : 'Submit'} </button>
       </form>
 
       {results && (

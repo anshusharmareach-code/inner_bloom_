@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { onAuthStateChanged, signInAnonymously } from 'firebase/auth';
+import { push, ref, set } from 'firebase/database';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { auth as sharedAuth, db as sharedDb } from '../Components/firebase';
-import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'firebase/auth';
-import { ref, push, set } from 'firebase/database';
 import '../CSS/Phq.css';
 
 const PHQ9_QUESTIONS = [
@@ -52,6 +52,9 @@ const PHQ9Test = () => {
     const [result, setResult] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [modalContent, setModalContent] = useState({ title: '', message: '' });
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [hasSubmitted, setHasSubmitted] = useState(false);
+    const submittingRef = useRef(false);
 
     const showCustomModal = useCallback((title, message) => {
         setModalContent({ title, message });
@@ -97,6 +100,22 @@ useEffect(() => {
         const interpretation = getScoreInterpretation(score);
         setResult({ score, interpretation });
 
+        if (hasSubmitted) {
+            showCustomModal('Already Submitted', 'You have already submitted this assessment.');
+            return;
+        }
+        if (hasSubmitted || submittingRef.current) {
+            showCustomModal('Already Submitted', 'You have already submitted this assessment.');
+            return;
+        }
+
+        // prevent double-submit/race by using a ref guard
+        if (submittingRef.current) {
+            showCustomModal('Already submitting', 'Your submission is in progress.');
+            return;
+        }
+        submittingRef.current = true;
+        setIsSubmitting(true);
         try {
             const resultsRef = ref(db, `users/${userId}/assessmentResults`);
             const newResultRef = push(resultsRef);
@@ -107,10 +126,14 @@ useEffect(() => {
                 timestamp: Date.now(),
                 answers
             });
+            setHasSubmitted(true);
             showCustomModal("Success", `Your score (${score}) has been saved! Interpretation: ${interpretation.text}`);
         } catch (err) {
             console.error(err);
             showCustomModal("Error", "Failed to save results.");
+        } finally {
+            setIsSubmitting(false);
+            submittingRef.current = false;
         }
     };
 
@@ -144,8 +167,8 @@ useEffect(() => {
                         </div>
                     ))}
 
-                    <button type="submit" className="submit-btn" disabled={!isAuthReady || !userId}>
-                        {isAuthReady && userId ? 'Get My Score & Save Results' : 'Loading...'}
+                    <button type="submit" className="submit-btn" disabled={!isAuthReady || !userId || isSubmitting || hasSubmitted}>
+                        {isSubmitting ? 'Saving...' : hasSubmitted ? 'Already saved' : (isAuthReady && userId ? 'Get My Score & Save Results' : 'Loading...')}
                     </button>
                 </form>
 
