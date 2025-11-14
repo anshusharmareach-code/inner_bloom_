@@ -119,13 +119,6 @@ html, body {
   box-shadow: 0 2px 8px rgba(86, 102, 255, 0.15);
 }
 
-.cd-user-item img {
-  width: 46px;
-  height: 46px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
 .cd-user-item span {
   font-size: 0.95rem;
   font-weight: 500;
@@ -158,6 +151,23 @@ html, body {
   margin: 0;
   font-size: 1.55rem;
   color: #0f172a;
+}
+
+
+.cd-back-btn {
+  background: transparent;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  color: #0f172a;
+  padding: 8px 12px;
+  border-radius: 8px;
+  margin-right: 12px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.cd-back-btn:hover {
+  background: #f1f5f9;
+  border-color: rgba(15, 23, 42, 0.12);
 }
 
 
@@ -250,12 +260,39 @@ html, body {
 }
 
 
+.cd-post-media {
+  width: 100%;
+  border-radius: 10px;
+  margin-top: 10px;
+  background: #e5e7eb;
+  overflow: hidden;
+}
+
 .cd-post-img {
   width: 100%;
-  max-height: 260px;
+  height: 100%;
   border-radius: 10px;
   object-fit: cover;
-  margin-top: 10px;
+}
+
+.cd-post-video {
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+
+.cd-post-media.square-ratio {
+  aspect-ratio: 1 / 1;
+}
+
+.cd-post-media.landscape-ratio {
+  aspect-ratio: 1.91 / 1;
+}
+
+.cd-post-media.portrait-ratio {
+  aspect-ratio: 4 / 5;
 }
 
 

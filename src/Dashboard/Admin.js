@@ -74,6 +74,16 @@ const AdminDashboard = () => {
   const counsellors = users.filter((u) => u.role === "counsellor");
   const regularUsers = users.filter((u) => u.role === "user");
 
+  
+  const postsByUser = {};
+  posts.forEach((post) => {
+    const userKey = post.authorId || post.userEmail;
+    if (!postsByUser[userKey]) {
+      postsByUser[userKey] = [];
+    }
+    postsByUser[userKey].push(post);
+  });
+
   const getImageClass = (src) => {
     const img = new Image();
     img.src = src;
@@ -121,30 +131,43 @@ const AdminDashboard = () => {
 
         {}
         <div className="feed-panel">
-          <h3>Users List</h3>
+          <h3>Users</h3>
 
-          {regularUsers.map((u) => (
-            <div
-              key={u.id}
-              className={`feed-card ${selectedUser?.id === u.id ? "selected" : ""}`}
-              onClick={() => setSelectedUser(u)}
-            >
-              <div className="feed-user">{u.email}</div>
-              <p className="feed-snippet">
-                {u.assignedCounsellor ? "✓ Assigned" : "Not Assigned"}
-              </p>
-            </div>
-          ))}
+          <div className="admin-users-list">
+            {regularUsers.map((u) => (
+              <div
+                key={u.id}
+                className={`admin-user-card ${selectedUser?.id === u.id ? "active" : ""}`}
+                onClick={() => setSelectedUser(u)}
+              >
+                <div className="admin-user-info">
+                  <h4>{u.email}</h4>
+                  <span className="assigned-badge">{u.assignedCounsellor ? "✓ Assigned" : "Not Assigned"}</span>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
         {}
-        <div className="post-panel">
+        <div className="post-panel-wrapper">
           {!selectedUser ? (
-            <p className="select-placeholder">Select a user</p>
+            <p className="select-placeholder">Select a user to view details</p>
           ) : (
             <>
-              <h2>{selectedUser.email || "Unknown User"}</h2>
+              {}
+              <div className="admin-panel-header">
+                <button 
+                  className="admin-back-btn"
+                  onClick={() => { setSelectedUser(null); setSelectedCounsellor(""); }}
+                  aria-label="Back to users list"
+                >
+                  ← Back
+                </button>
+                <h2>{selectedUser.email || "Unknown User"}</h2>
+              </div>
 
+              {}
               <div className="assign-box">
                 <label>Assign Counsellor</label>
 
@@ -165,6 +188,32 @@ const AdminDashboard = () => {
                 </button>
 
                 {assignMsg && <p className="assign-msg">{assignMsg}</p>}
+              </div>
+
+              {}
+              <div className="admin-posts-section">
+                <h3>User Posts</h3>
+                <div className="admin-selected-user-posts">
+                  {(postsByUser[selectedUser.id] || postsByUser[selectedUser.email] || []).length === 0 ? (
+                    <p className="no-posts">No posts</p>
+                  ) : (
+                    (postsByUser[selectedUser.id] || postsByUser[selectedUser.email] || []).map((post) => (
+                      <div key={post.id} className="admin-full-post">
+                        {post.content && <p className="admin-post-content">{post.content}</p>}
+                        {post.media && (
+                          <div className={`admin-post-media ${getImageClass(post.media)}`}>
+                            {post.media.startsWith('data:image') ? (
+                              <img src={post.media} alt="post" />
+                            ) : (
+                              <video src={post.media} controls />
+                            )}
+                          </div>
+                        )}
+                        <p className="admin-post-date">{new Date(post.timestamp).toLocaleString()}</p>
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
             </>
           )}

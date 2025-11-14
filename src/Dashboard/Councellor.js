@@ -64,7 +64,7 @@ const CounsellorDashboard = () => {
     });
   };
 
-  const fetchUserPosts = (userId) => {
+  const fetchUserPosts = (user) => {
     const db = getDatabase();
     const postsRef = ref(db, 'posts');
 
@@ -75,11 +75,10 @@ const CounsellorDashboard = () => {
         return;
       }
 
-
       const userPostsList = Object.entries(data)
-        .filter(([_, post]) => 
-          post.authorId === userId || 
-          post.userEmail === selectedUser?.email
+        .filter(([_, post]) =>
+          post.authorId === user.uid ||
+          post.userEmail === user.email
         )
         .map(([postId, post]) => ({
           id: postId,
@@ -96,20 +95,44 @@ const CounsellorDashboard = () => {
   const handleSelectUser = (user) => {
     setSelectedUser(user);
     setActiveTab("posts");
-    fetchUserPosts(user.uid);
+    fetchUserPosts(user);
   };
 
 
   const markAsReviewed = (postId) => {
-    const db = getDatabase();
-    const postRef = ref(db, `posts/${selectedUser.uid}/${postId}`);
+    try {
+      const db = getDatabase();
 
-    update(postRef, { status: "reviewed" });
+      const postRef = ref(db, `posts/${postId}`);
+
+
+      setUserPosts((prev) => prev.map(p => p.id === postId ? { ...p, status: 'reviewed' } : p));
+
+      update(postRef, { status: "reviewed" });
+    } catch (err) {
+      console.error('Error marking post reviewed:', err);
+      alert('Failed to mark as reviewed');
+    }
   };
 
 
   const addNote = (postId) => {
     alert("Add Note clicked (you can customize this).");
+  };
+
+  const getMediaRatio = (src) => {
+    const img = new Image();
+    img.src = src;
+
+    const w = img.width;
+    const h = img.height;
+
+    if (!w || !h) return "square-ratio";
+    const ratio = w / h;
+
+    if (ratio === 1) return "square-ratio";
+    if (ratio > 1.3) return "landscape-ratio";
+    return "portrait-ratio";
   };
 
   if (loading) {
@@ -146,7 +169,6 @@ const CounsellorDashboard = () => {
                 className={`cd-user-item ${selectedUser?.uid === user.uid ? "active" : ""}`}
                 onClick={() => handleSelectUser(user)}
               >
-                <img src={user.photoURL || "/default-avatar.png"} alt="" />
                 <span>{user.name || user.email}</span>
               </div>
             ))}
@@ -162,6 +184,13 @@ const CounsellorDashboard = () => {
           <>
             {}
             <div className="cd-user-header">
+              <button
+                className="cd-back-btn"
+                onClick={() => { setSelectedUser(null); setUserPosts([]); }}
+                aria-label="Back to users list"
+              >
+                ← Back
+              </button>
               <h2>{selectedUser.name || selectedUser.email}</h2>
             </div>
 
@@ -198,20 +227,24 @@ const CounsellorDashboard = () => {
                   <div className="cd-post-card" key={post.id}>
                     <div className="cd-post-header">
                       <h4>User Post</h4>
-                      <span className={`status ${post.status === "reviewed" ? "green" : "yellow"}`}>
-                        {post.status || "pending"}
-                      </span>
                     </div>
 
-                    {post.text && <p className="cd-post-text">{post.text}</p>}
-                    {post.image && <img src={post.image} className="cd-post-img" alt="" />}
+                    {post.content && <p className="cd-post-text">{post.content}</p>}
+                    {post.media && (
+                      <div className={`cd-post-media ${getMediaRatio(post.media)}`}>
+                        {post.media.startsWith('data:image') ? (
+                          <img src={post.media} className="cd-post-img" alt="post media" />
+                        ) : (
+                          <video src={post.media} controls className="cd-post-video" />
+                        )}
+                      </div>
+                    )}
 
                     <div className="cd-actions">
                       <button onClick={() => addNote(post.id)}>Add Note</button>
-                      <button onClick={() => markAsReviewed(post.id)}>Mark as Reviewed</button>
                     </div>
 
-                    <p className="cd-date">{post.date}</p>
+                    <p className="cd-date">{new Date(post.timestamp).toLocaleString()}</p>
                   </div>
                 ))}
               </div>
