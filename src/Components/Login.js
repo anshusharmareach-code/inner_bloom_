@@ -53,7 +53,7 @@ const Login = ({
 
         let snapshot = await get(child(ref(db), `users/${user.uid}`));
 
-        
+
         if (!snapshot.exists()) {
 
           const signupData = localStorage.getItem(`signup_${user.uid}`);
@@ -117,7 +117,7 @@ const Login = ({
 
         await sendEmailVerification(user);
 
-        
+
         await signOut(auth);
 
         setMessage('Signup successful! A verification link has been sent to your email. Please verify your email to complete registration. After verification, you can log in.');

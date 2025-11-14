@@ -1,17 +1,28 @@
-import React, { useState, useEffect } from 'react';
-import { getAuth } from 'firebase/auth';
-import { getDatabase, ref, get, child, onValue } from 'firebase/database';
-import '../CSS/Dashboard.css';
+import { getAuth } from "firebase/auth";
+import { child, get, getDatabase, onValue, ref, update } from "firebase/database";
+import { useEffect, useState } from "react";
+import "../CSS/Dashboard.css";
 
 const CounsellorDashboard = () => {
   const [counsellorInfo, setCounsellorInfo] = useState(null);
   const [assignedUsers, setAssignedUsers] = useState([]);
+  const [selectedUser, setSelectedUser] = useState(null);
+
+  const [userPosts, setUserPosts] = useState([]);
+  const [activeTab, setActiveTab] = useState("posts"); 
+
+  const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchCounsellorData();
-    fetchAssignedUsers();
   }, []);
+
+  useEffect(() => {
+    if (counsellorInfo?.uid) {
+      fetchAssignedUsers();
+    }
+  }, [counsellorInfo]);
 
   const fetchCounsellorData = async () => {
     try {
@@ -26,12 +37,12 @@ const CounsellorDashboard = () => {
         setCounsellorInfo({
           uid: currentUser.uid,
           email: currentUser.email,
-          role: userData.role || 'counsellor',
-          ...userData
+          role: userData.role || "counsellor",
+          ...userData,
         });
       }
     } catch (error) {
-      console.error('Error fetching counsellor data:', error);
+      console.error("Error fetching counsellor:", error);
     } finally {
       setLoading(false);
     }
@@ -39,66 +50,188 @@ const CounsellorDashboard = () => {
 
   const fetchAssignedUsers = () => {
     const db = getDatabase();
-    const usersRef = ref(db, 'users');
+    const refUsers = ref(db, "users");
 
-    onValue(usersRef, (snapshot) => {
+    onValue(refUsers, (snapshot) => {
       const data = snapshot.val();
       if (data) {
-        const users = Object.entries(data)
-          .filter(([uid, userData]) => 
-            userData.role === 'user' && 
-            userData.assignedCounsellor === counsellorInfo?.uid
-          )
-          .map(([uid, userData]) => ({ uid, ...userData }));
+        const list = Object.entries(data)
+          .filter(([uid, usr]) => usr.role === "user" && usr.assignedCounsellor === counsellorInfo?.uid)
+          .map(([uid, usr]) => ({ uid, ...usr }));
 
-        setAssignedUsers(users);
+        setAssignedUsers(list);
       }
     });
   };
 
+  const fetchUserPosts = (userId) => {
+    const db = getDatabase();
+    const postsRef = ref(db, 'posts');
+
+    onValue(postsRef, (snap) => {
+      const data = snap.val();
+      if (!data) {
+        setUserPosts([]);
+        return;
+      }
+
+
+      const userPostsList = Object.entries(data)
+        .filter(([_, post]) => 
+          post.authorId === userId || 
+          post.userEmail === selectedUser?.email
+        )
+        .map(([postId, post]) => ({
+          id: postId,
+          ...post,
+        }));
+
+      userPostsList.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+      setUserPosts(userPostsList);
+    });
+  };
+
+
+  const handleSelectUser = (user) => {
+    setSelectedUser(user);
+    setActiveTab("posts");
+    fetchUserPosts(user.uid);
+  };
+
+
+  const markAsReviewed = (postId) => {
+    const db = getDatabase();
+    const postRef = ref(db, `posts/${selectedUser.uid}/${postId}`);
+
+    update(postRef, { status: "reviewed" });
+  };
+
+
+  const addNote = (postId) => {
+    alert("Add Note clicked (you can customize this).");
+  };
+
   if (loading) {
-    return <div className="dashboard-loading">Loading counsellor dashboard...</div>;
+    return <div className="dashboard-loading">Loading...</div>;
   }
 
   return (
-    <div className="dashboard-container">
-      <div className="dashboard-header">
-        <h1>Counsellor Dashboard</h1>
-        <p>Welcome, {counsellorInfo?.email}</p>
+    <div className="cd-wrapper">
+
+      {}
+      <div className="cd-sidebar">
+        <h2>Assigned Users</h2>
+
+        <div className="cd-search-box">
+          <i className="search-icon">🔍</i>
+          <input
+            type="text"
+            placeholder="Search users..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+
+        <div className="cd-user-list">
+          {assignedUsers
+            .filter((u) =>
+              (u.name || u.email || "")
+                .toLowerCase()
+                .includes(search.toLowerCase())
+            )
+            .map((user) => (
+              <div
+                key={user.uid}
+                className={`cd-user-item ${selectedUser?.uid === user.uid ? "active" : ""}`}
+                onClick={() => handleSelectUser(user)}
+              >
+                <img src={user.photoURL || "/default-avatar.png"} alt="" />
+                <span>{user.name || user.email}</span>
+              </div>
+            ))}
+        </div>
       </div>
 
-      <div className="dashboard-content">
-        <div className="dashboard-card">
-          <h3>Your Profile</h3>
-          <p><strong>Role:</strong> {counsellorInfo?.role}</p>
-          <p><strong>Email:</strong> {counsellorInfo?.email}</p>
-          <p><strong>Assigned Users:</strong> {assignedUsers.length}</p>
-        </div>
+      {}
+      <div className="cd-main">
 
-        <div className="dashboard-card">
-          <h3>Assigned Users</h3>
-          {assignedUsers.length > 0 ? (
-            <ul className="user-list">
-              {assignedUsers.map((user) => (
-                <li key={user.uid} className="user-item">
-                  <span>{user.email}</span>
-                  <button className="view-btn">View Details</button>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p>No users assigned yet.</p>
-          )}
-        </div>
+        {!selectedUser ? (
+          <p className="cd-placeholder">Select a user to view posts</p>
+        ) : (
+          <>
+            {}
+            <div className="cd-user-header">
+              <h2>{selectedUser.name || selectedUser.email}</h2>
+            </div>
 
-        <div className="dashboard-card">
-          <h3>Quick Actions</h3>
-          <div className="action-buttons">
-            <button className="action-btn">View All Users</button>
-            <button className="action-btn">Create Report</button>
-            <button className="action-btn">Schedule Session</button>
-          </div>
-        </div>
+            {}
+            <div className="cd-tabs">
+              <button
+                className={activeTab === "posts" ? "active" : ""}
+                onClick={() => setActiveTab("posts")}
+              >
+                User Posts
+              </button>
+
+              <button
+                className={activeTab === "reports" ? "active" : ""}
+                onClick={() => setActiveTab("reports")}
+              >
+                Reports
+              </button>
+
+              <button
+                className={activeTab === "scheduler" ? "active" : ""}
+                onClick={() => setActiveTab("scheduler")}
+              >
+                Scheduler
+              </button>
+            </div>
+
+            {}
+            {activeTab === "posts" && (
+              <div className="cd-post-list">
+                {userPosts.length === 0 && <p>No posts yet.</p>}
+
+                {userPosts.map((post) => (
+                  <div className="cd-post-card" key={post.id}>
+                    <div className="cd-post-header">
+                      <h4>User Post</h4>
+                      <span className={`status ${post.status === "reviewed" ? "green" : "yellow"}`}>
+                        {post.status || "pending"}
+                      </span>
+                    </div>
+
+                    {post.text && <p className="cd-post-text">{post.text}</p>}
+                    {post.image && <img src={post.image} className="cd-post-img" alt="" />}
+
+                    <div className="cd-actions">
+                      <button onClick={() => addNote(post.id)}>Add Note</button>
+                      <button onClick={() => markAsReviewed(post.id)}>Mark as Reviewed</button>
+                    </div>
+
+                    <p className="cd-date">{post.date}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {activeTab === "reports" && (
+              <div className="cd-tab-content">
+                <h3>Reports Section</h3>
+                <p>Here you can create and view reports.</p>
+              </div>
+            )}
+
+            {activeTab === "scheduler" && (
+              <div className="cd-tab-content">
+                <h3>Scheduler</h3>
+                <p>Your upcoming sessions and schedule will appear here.</p>
+              </div>
+            )}
+          </>
+        )}
       </div>
     </div>
   );

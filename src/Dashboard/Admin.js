@@ -1,11 +1,11 @@
-import { useEffect, useState } from "react";
 import { getDatabase, onValue, ref, update } from "firebase/database";
+import { useEffect, useState } from "react";
 import "../CSS/Admin.css";
 
 const AdminDashboard = () => {
   const [users, setUsers] = useState([]);
   const [posts, setPosts] = useState([]);
-  const [selectedPost, setSelectedPost] = useState(null);
+  const [selectedUser, setSelectedUser] = useState(null);
   const [selectedCounsellor, setSelectedCounsellor] = useState("");
   const [assignMsg, setAssignMsg] = useState("");
 
@@ -57,15 +57,22 @@ const AdminDashboard = () => {
   };
 
   const handleAssign = async () => {
-    if (!selectedPost || !selectedCounsellor) return;
+    if (!selectedUser || !selectedCounsellor) {
+      setAssignMsg("Please select both a user and a counsellor");
+      return;
+    }
+    
     const db = getDatabase();
-    await update(ref(db, `posts/${selectedPost.id}`), {
+    await update(ref(db, `users/${selectedUser.id}`), {
       assignedCounsellor: selectedCounsellor,
     });
-    setAssignMsg("Counsellor assigned!");
+    setAssignMsg(`${selectedUser.email} assigned to counsellor successfully!`);
+    setSelectedCounsellor("");
+    setTimeout(() => setAssignMsg(""), 3000);
   };
 
   const counsellors = users.filter((u) => u.role === "counsellor");
+  const regularUsers = users.filter((u) => u.role === "user");
 
   const getImageClass = (src) => {
     const img = new Image();
@@ -114,43 +121,29 @@ const AdminDashboard = () => {
 
         {}
         <div className="feed-panel">
-          <h3>Community Feed</h3>
+          <h3>Users List</h3>
 
-          {posts.map((p) => {
-            const user = resolveUser(p.authorId, p.userEmail);
-            const email = user.email || p.userEmail || "Unknown User";
-
-            return (
-              <div
-                key={p.id}
-                className="feed-card"
-                onClick={() => setSelectedPost(p)}
-              >
-                <div className="feed-user">{email}</div>
-
-                {p.media ? (
-                  <img
-                    src={p.media}
-                    alt="post"
-                    className={`feed-img ${getImageClass(p.media)}`}
-                  />
-                ) : (
-                  <p className="feed-snippet">
-                    {(p.text || "(No text)").slice(0, 120)}...
-                  </p>
-                )}
-              </div>
-            );
-          })}
+          {regularUsers.map((u) => (
+            <div
+              key={u.id}
+              className={`feed-card ${selectedUser?.id === u.id ? "selected" : ""}`}
+              onClick={() => setSelectedUser(u)}
+            >
+              <div className="feed-user">{u.email}</div>
+              <p className="feed-snippet">
+                {u.assignedCounsellor ? "✓ Assigned" : "Not Assigned"}
+              </p>
+            </div>
+          ))}
         </div>
 
         {}
         <div className="post-panel">
-          {!selectedPost ? (
+          {!selectedUser ? (
             <p className="select-placeholder">Select a user</p>
           ) : (
             <>
-              <h2>{selectedPost.userEmail || "Unknown User"}</h2>
+              <h2>{selectedUser.email || "Unknown User"}</h2>
 
               <div className="assign-box">
                 <label>Assign Counsellor</label>
