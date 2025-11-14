@@ -83,31 +83,19 @@ const GAD7 = () => {
       submittingRef.current = true;
       setIsSubmitting(true);
       try {
-<<<<<<< HEAD
-        const resultsRef = ref(db, `users/${userId}/assessmentResults`);
-        const newResultRef = push(resultsRef);
-        await set(newResultRef, {
-=======
-        
+        // Save result only under the authenticated user's node
         const payload = {
->>>>>>> upstream/master
           testType: "GAD-7",
           score: totalScore,
           resultInterpretation: resultInterpretation,
           timestamp: Date.now(),
           answers
-<<<<<<< HEAD
-        });
-        setHasSubmitted(true);
-        console.log("GAD-7 result saved to Realtime Database ✅");
-=======
         };
         const userRoot = ref(db, `users/${userId}/assessmentResults`);
         const newUserResultRef = push(userRoot);
         await set(newUserResultRef, payload);
         setHasSubmitted(true);
         console.log("GAD-7 result saved to public and user nodes ✅");
->>>>>>> upstream/master
       } catch (error) {
         console.error("Error saving result:", error);
       } finally {
@@ -180,10 +168,7 @@ const GAD7 = () => {
             <p><strong>Score:</strong> {score}</p>
             <p><strong>Interpretation:</strong> {interpretation}</p>
             <p className="disclaimer">Disclaimer: This is not a diagnostic tool.</p>
-<<<<<<< HEAD
-=======
-            {}
->>>>>>> upstream/master
+            {/* Like UI removed (kept this comment as a placeholder) */}
           </div>
         )}
       </div>

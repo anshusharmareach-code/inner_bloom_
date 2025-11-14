@@ -50,6 +50,7 @@ const Login = ({
           return;
         }
 
+<<<<<<< HEAD
         // Fetch user data from database
         let snapshot = await get(child(ref(db), `users/${user.uid}`));
         
@@ -58,19 +59,37 @@ const Login = ({
           // Try to get signup data from localStorage
           const signupData = localStorage.getItem(`signup_${user.uid}`);
           let userRole = 'user'; // default role
+=======
+
+        let snapshot = await get(child(ref(db), `users/${user.uid}`));
+
+        
+        if (!snapshot.exists()) {
+
+          const signupData = localStorage.getItem(`signup_${user.uid}`);
+          let userRole = 'user'; 
+>>>>>>> upstream/master
 
           if (signupData) {
             try {
               const parsed = JSON.parse(signupData);
               userRole = parsed.role || 'user';
+<<<<<<< HEAD
               // Clean up localStorage after use
+=======
+
+>>>>>>> upstream/master
               localStorage.removeItem(`signup_${user.uid}`);
             } catch (e) {
               console.error('Error parsing signup data:', e);
             }
           }
 
+<<<<<<< HEAD
           // Create user record
+=======
+
+>>>>>>> upstream/master
           await set(ref(db, 'users/' + user.uid), {
             email: user.email,
             role: userRole,
@@ -107,17 +126,28 @@ const Login = ({
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
 
+<<<<<<< HEAD
         // Store signup data in localStorage temporarily (will be used after verification)
+=======
+
+>>>>>>> upstream/master
         localStorage.setItem(`signup_${user.uid}`, JSON.stringify({
           email: user.email,
           role: role,
           signupTime: Date.now()
         }));
 
+<<<<<<< HEAD
         // Send verification email first
         await sendEmailVerification(user);
         
         // Sign out immediately after signup
+=======
+
+        await sendEmailVerification(user);
+
+        
+>>>>>>> upstream/master
         await signOut(auth);
 
         setMessage('Signup successful! A verification link has been sent to your email. Please verify your email to complete registration. After verification, you can log in.');

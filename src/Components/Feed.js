@@ -16,10 +16,17 @@ const Feed = ({ currentUser, userRole }) => {
     const unsubscribe = onValue(postsRef, (snapshot) => {
       if (snapshot.exists()) {
         const postsData = snapshot.val();
+<<<<<<< HEAD
         const postsArray = Object.entries(postsData).map(([id, post]) => ({
           id,
           ...post,
         })).sort((a, b) => b.timestamp - a.timestamp);
+=======
+        const postsArray = Object.entries(postsData).map(([id, post]) => {
+          const { likes, likedBy, ...rest } = post;
+          return { id, ...rest };
+        }).sort((a, b) => b.timestamp - a.timestamp);
+>>>>>>> upstream/master
         setPosts(postsArray);
       } else {
         setPosts([]);
@@ -37,7 +44,10 @@ const Feed = ({ currentUser, userRole }) => {
     setIsModalOpen(false);
   };
 
+<<<<<<< HEAD
   // Only users and counsellors can see the feed
+=======
+>>>>>>> upstream/master
   if (userRole === 'admin') {
     return <div className="feed-loading">Admins do not have access to the community feed.</div>;
   }
@@ -58,7 +68,11 @@ const Feed = ({ currentUser, userRole }) => {
 
       <div className="posts-grid">
         {posts.map(post => (
+<<<<<<< HEAD
           <Post key={post.id} post={post} currentUser={currentUser} userRole={userRole} />
+=======
+          <Post key={post.id} post={post} currentUser={currentUser} userRole={userRole} hideLikes />
+>>>>>>> upstream/master
         ))}
       </div>
 

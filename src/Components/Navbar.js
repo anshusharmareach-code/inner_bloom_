@@ -42,7 +42,11 @@ const NavBar = ({ isLoggedIn, setIsLoggedIn, userRole }) => {
   const menuRef = useRef(null);
 
 
+<<<<<<< HEAD
   
+=======
+
+>>>>>>> upstream/master
 
   useEffect(() => {
     const auth = getAuth();
@@ -74,7 +78,11 @@ const NavBar = ({ isLoggedIn, setIsLoggedIn, userRole }) => {
   }, [setIsLoggedIn]);
 
 
+<<<<<<< HEAD
   
+=======
+
+>>>>>>> upstream/master
 
   const userAvatar = useMemo(() => {
     if (!user?.email) {
@@ -90,7 +98,11 @@ const NavBar = ({ isLoggedIn, setIsLoggedIn, userRole }) => {
   }, [user?.email]);
 
 
+<<<<<<< HEAD
   
+=======
+
+>>>>>>> upstream/master
 
   const handleLogout = async () => {
     try {
@@ -103,7 +115,11 @@ const NavBar = ({ isLoggedIn, setIsLoggedIn, userRole }) => {
   };
 
 
+<<<<<<< HEAD
   
+=======
+
+>>>>>>> upstream/master
 
   const exportToCSV = () => {
     if (!testHistory.length) return;
@@ -130,7 +146,11 @@ const NavBar = ({ isLoggedIn, setIsLoggedIn, userRole }) => {
   };
 
 
+<<<<<<< HEAD
   
+=======
+
+>>>>>>> upstream/master
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -145,13 +165,31 @@ const NavBar = ({ isLoggedIn, setIsLoggedIn, userRole }) => {
   }, []);
 
 
+<<<<<<< HEAD
   
+=======
+
+
+  const handleLogoClick = () => {
+    if (userRole === 'admin') {
+      navigate('/admin');
+    } else if (userRole === 'counsellor') {
+      navigate('/counsellor');
+    } else {
+      navigate('/');
+    }
+  };
+>>>>>>> upstream/master
 
   return (
     <nav className="navbar">
 
       {}
+<<<<<<< HEAD
       <div className="brand-wrapper" onClick={() => navigate('/')}>
+=======
+      <div className="brand-wrapper" onClick={handleLogoClick}>
+>>>>>>> upstream/master
         <span className="company-name">MindCare</span>
       </div>
 

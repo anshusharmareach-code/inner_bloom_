@@ -30,11 +30,7 @@ const CreatePostModal = ({ onClose }) => {
 
     try {
 
-<<<<<<< HEAD
       
-=======
-
->>>>>>> upstream/master
       const postData = {
         authorId: user.uid,
         userEmail: user.email,
