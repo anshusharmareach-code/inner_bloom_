@@ -63,7 +63,7 @@ const Login = ({
 
         let snapshot = await get(child(ref(db), `users/${user.uid}`));
 
-        
+
         if (!snapshot.exists()) {
 
           const signupData = localStorage.getItem(`signup_${user.uid}`);
@@ -146,7 +146,11 @@ const Login = ({
 
         await sendEmailVerification(user);
 
+<<<<<<< HEAD
         
+>>>>>>> upstream/master
+=======
+
 >>>>>>> upstream/master
         await signOut(auth);
 
